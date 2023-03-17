@@ -1,0 +1,31 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/focal64"
+
+  config.vm.define "master", autostart: true do |master|
+    master.vm.provider "virtualbox" do |vb|
+      vb.memory = "8192"
+    end
+    master.vm.network "forwarded_port", guest: 80, host: 80
+    master.vm.network "forwarded_port", guest: 443, host: 443
+    master.vm.network "forwarded_port", guest: 5432, host: 5432
+    master.vm.network "forwarded_port", guest: 8080, host: 8080
+    master.vm.network "forwarded_port", guest: 8081, host: 8081
+    master.vm.hostname = "puppetmaster"
+    master.vm.provision "shell", inline: <<-SHELL
+      sudo su -
+      apt-get update
+      cd /vagrant
+      wget --content-disposition 'https://pm.puppet.com/cgi-bin/download.cgi?dist=ubuntu&rel=20.04&arch=amd64&ver=latest'
+      tar -xf puppet-enterprise-2023.0.0-ubuntu-20.04-amd64.tar.gz
+      sed --in-place "s/^search/#search/" /etc/resolv.conf
+      cd puppet-enterprise-2023.0.0-ubuntu-20.04-amd64/
+      ./puppet-enterprise-installer -y -c /vagrant/pe.conf
+      puppet infrastructure console_password --password qwerty42
+      puppet agent --test
+      puppet agent --test
+    SHELL
+  end
+end

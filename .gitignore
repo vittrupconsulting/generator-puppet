@@ -3,3 +3,5 @@
 /validator/.vagrant/
 /generator/corsair_rsa
 /generator/corsair_rsa.pub
+/enterprise/.vagrant/
+/enterprise/puppet-enterprise-*.tar.gz
