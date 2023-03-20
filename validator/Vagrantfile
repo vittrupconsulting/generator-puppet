@@ -18,6 +18,22 @@ Vagrant.configure("2") do |config|
     SHELL
   end
 
+  config.vm.define "enterprise", autostart: false do |enterprise|
+    enterprise.vm.box = "puppet/enterprise"
+    enterprise.vm.hostname = "puppetmaster"
+    enterprise.vm.network "private_network", ip: "192.168.147.20", virtualbox__intnet: true
+    enterprise.vm.network "forwarded_port", guest: 80, host: 80
+    enterprise.vm.network "forwarded_port", guest: 443, host: 443
+    enterprise.vm.network "forwarded_port", guest: 5432, host: 5432
+    enterprise.vm.network "forwarded_port", guest: 8080, host: 8080
+    enterprise.vm.network "forwarded_port", guest: 8081, host: 8081
+    enterprise.vm.provision "shell", inline: <<-SHELL
+      sudo su -
+      puppet config set server puppetmaster --section main
+      puppet agent --test
+    SHELL
+  end
+
   config.vm.define "slave", autostart: true do |slave|
     slave.vm.box = "puppet/slave"
     slave.vm.hostname = "puppetslave"
